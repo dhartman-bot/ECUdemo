@@ -41,7 +41,8 @@ $(TARGET): $(BUILD_DIR) $(OBJECTS)
 	@echo "Build complete: $(TARGET)"
 
 # Compile .c files to .o files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run the program in demo mode
