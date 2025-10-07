@@ -14,7 +14,7 @@ Perfect for demonstrating code analysis, dependency mapping, and refactoring cap
 
 ## 🏗️ Architecture
 
-The ECU controller manages 5 key subsystems:
+The ECU controller manages 8 key subsystems:
 
 ### 1. **Engine Control**
 - RPM management and throttle control
@@ -24,7 +24,7 @@ The ECU controller manages 5 key subsystems:
 
 ### 2. **Hydraulics Control**
 - Hydraulic pressure regulation
-- PTO (Power Take-Off) control
+- System pressure and flow monitoring
 - Implement operations (raise/lower)
 - **Dependencies**: Engine (for pump speed), CANBus, Diagnostics
 
@@ -34,13 +34,34 @@ The ECU controller manages 5 key subsystems:
 - Speed calculations
 - **Dependencies**: Engine (for gear ratios), CANBus, Diagnostics
 
-### 4. **Diagnostics**
+### 4. **PTO (Power Take-Off)**
+- Standard 540 RPM and high-speed 1000 RPM operation
+- Load monitoring and torque management
+- Overload protection
+- Slip detection during engagement
+- **Dependencies**: Engine, CANBus, Diagnostics
+
+### 5. **GPS & Telematics**
+- Real-time GPS positioning and tracking
+- Cloud connectivity (4G LTE/5G/Satellite)
+- Field coverage monitoring
+- Remote telemetry and status updates
+- **Dependencies**: CANBus, Diagnostics
+
+### 6. **Implement Control**
+- Support for multiple implement types (Planter, Sprayer, Baler, Cultivator, Mower)
+- Automatic depth control
+- Working width and coverage rate calculation
+- Hydraulic pressure and flow monitoring
+- **Dependencies**: Hydraulics, PTO, CANBus, Diagnostics
+
+### 7. **Diagnostics**
 - Fault code tracking (up to 50 faults)
 - System health monitoring
 - Event logging
 - **Dependencies**: CANBus
 
-### 5. **CAN Bus**
+### 8. **CAN Bus**
 - Inter-module communication
 - Message buffering
 - Bus load monitoring
@@ -76,11 +97,14 @@ gcc -o build/ecu_controller src/**/*.c src/*.c -I./src -lm
 ### Expected Output
 
 The demo will:
-1. Initialize all subsystems
-2. Start the engine
+1. Initialize all subsystems (including PTO, GPS/Telematics, and Implement Control)
+2. Start the engine and establish GPS fix
 3. Shift through gears
-4. Engage PTO and raise implements
-5. Display system status and diagnostics
+4. Attach a 24-row planter
+5. Engage PTO at 540 RPM
+6. Lower implement to begin field work
+7. Send telematics updates to cloud
+8. Display comprehensive system status and diagnostics
 
 Example output:
 ```
@@ -94,6 +118,12 @@ Example output:
 [ENGINE] Initializing engine control module
 [TRANSMISSION] Initializing transmission control module
 [HYDRAULICS] Initializing hydraulics control module
+[PTO] Initializing PTO module
+[TELEMATICS] Initializing GPS/Telematics module
+[TELEMATICS] GPS fix acquired - 8 satellites
+[TELEMATICS] Position: 41.6032, -90.5776
+[TELEMATICS] Connected to cloud via 4G LTE (signal: 85%)
+[IMPLEMENT] Initializing implement control module
 
 🚜 Starting Tractor ECU Demo Sequence...
 
@@ -106,6 +136,16 @@ Example output:
 
 >>> Increasing throttle to 50%...
 [ENGINE] Throttle set to 50%, target RPM: 1700
+
+>>> Attaching 24-row planter...
+[IMPLEMENT] Attaching Planter
+[IMPLEMENT] 24-row planter configured (12m width)
+
+>>> Engaging PTO at 540 RPM...
+[PTO] Engaging PTO at 540 RPM target
+
+>>> Lowering implement to begin planting...
+[IMPLEMENT] Lowering Planter to working position
 ```
 
 ## 📊 Demo Scenarios
@@ -178,12 +218,16 @@ Example output:
 - `src/engine/engine_control.c` - Lines 24-40 show CANBus usage
 - `src/hydraulics/hydraulics.c` - Line 20 shows Engine dependency
 - `src/transmission/transmission.c` - Line 21 shows Engine dependency
+- `src/pto/pto.c` - Lines 26-32 show Engine dependency checks
+- `src/implement/implement.c` - Lines 105-111 show Hydraulics and PTO dependencies
+- `src/telematics/telematics.c` - Lines 85-100 show GPS data distribution via CANBus
 
 ### Understand the problems:
 - All modules include each other's headers (tight coupling)
-- CAN message IDs hardcoded (0x100, 0x200, 0x300, 0x400)
+- CAN message IDs hardcoded (0x100, 0x200, 0x220, 0x230, 0x240, etc.)
 - No versioning or backward compatibility
 - Single point of failure
+- Complex interdependencies (Implement depends on Hydraulics, PTO, and Engine)
 
 ## 🎓 Learning Outcomes
 
@@ -217,11 +261,11 @@ After this demo, you'll understand:
 
 Enhance the demo with:
 
-1. **Add more subsystems**
-   - GPS/Navigation
+1. **Add more subsystems** *(GPS/Telematics and Implement Control already included!)*
    - Climate control (A/C, heating)
-   - Telematics (cellular connectivity)
-   - Implement control (specific to equipment type)
+   - Auto-steer and guidance systems
+   - Yield monitoring sensors
+   - Variable rate application control
 
 2. **Add complexity**
    - Configuration file parsing

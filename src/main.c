@@ -6,12 +6,18 @@
 #include "transmission/transmission.h"
 #include "diagnostics/diagnostics.h"
 #include "canbus/canbus.h"
+#include "pto/pto.h"
+#include "telematics/telematics.h"
+#include "implement/implement.h"
 
 // Main ECU control loop - coordinates all subsystems
 void print_system_status(void) {
     EngineState* engine = engine_get_state();
     HydraulicsState* hydraulics = hydraulics_get_state();
     TransmissionState* transmission = transmission_get_state();
+    PTOState* pto = pto_get_state();
+    TelematicsState* telematics = telematics_get_state();
+    ImplementState* implement = implement_get_state();
 
     printf("\n╔════════════════════════════════════════════════════════════╗\n");
     printf("║              TRACTOR ECU MONOLITH STATUS                  ║\n");
@@ -37,6 +43,43 @@ void print_system_status(void) {
            hydraulics->pto_engaged ? "Engaged " : "Disabled",
            hydraulics->pto_speed,
            hydraulics->implement_raised ? "Raised " : "Lowered");
+    printf("║                                                           ║\n");
+    printf("║ PTO SYSTEM:                                               ║\n");
+    printf("║   Status: %-12s  RPM: %4d / %4d               ║\n",
+           pto->status == PTO_ENGAGED ? "Engaged" :
+           pto->status == PTO_ENGAGING ? "Engaging" : "Disengaged",
+           pto->current_rpm, pto->target_speed);
+    printf("║   Load: %.1f%%    Torque: %.0f Nm                      ║\n",
+           pto->load_percent, pto->torque_nm);
+    printf("║                                                           ║\n");
+    printf("║ GPS/TELEMATICS:                                           ║\n");
+    printf("║   Position: %.4f, %.4f                     ║\n",
+           telematics->gps.latitude, telematics->gps.longitude);
+    printf("║   Speed: %.1f km/h    Heading: %.0f°                    ║\n",
+           telematics->gps.speed_kmh, telematics->gps.heading_deg);
+    printf("║   Cloud: %s    Signal: %.0f%%                      ║\n",
+           telematics->connectivity.cloud_connected ? "Connected " : "Disconnected",
+           telematics->connectivity.signal_strength);
+    printf("║   Field Coverage: %.1f%%                                 ║\n",
+           telematics->field_coverage_percent);
+    printf("║                                                           ║\n");
+    printf("║ IMPLEMENT CONTROL:                                        ║\n");
+    if (implement->type != IMPLEMENT_NONE) {
+        printf("║   Type: %-14s  Status: %-12s       ║\n",
+               implement->type == IMPLEMENT_PLANTER ? "Planter" :
+               implement->type == IMPLEMENT_SPRAYER ? "Sprayer" :
+               implement->type == IMPLEMENT_BALER ? "Baler" :
+               implement->type == IMPLEMENT_CULTIVATOR ? "Cultivator" :
+               implement->type == IMPLEMENT_MOWER ? "Mower" : "Unknown",
+               implement->status == IMPLEMENT_WORKING ? "Working" :
+               implement->status == IMPLEMENT_RAISED ? "Raised" : "Idle");
+        printf("║   Working Depth: %.1f cm    Width: %.1f m              ║\n",
+               implement->working_depth_cm, implement->working_width_m);
+        printf("║   Coverage Rate: %.1f ha/hr                            ║\n",
+               implement->coverage_rate_ha_hr);
+    } else {
+        printf("║   No implement attached                                   ║\n");
+    }
     printf("╚════════════════════════════════════════════════════════════╝\n\n");
 }
 
@@ -53,6 +96,9 @@ void run_demo_sequence(void) {
         engine_update();
         transmission_update();
         hydraulics_update();
+        pto_update();
+        telematics_update();
+        implement_update();
         diagnostics_update();
         canbus_update();
         sleep(1);
@@ -72,6 +118,9 @@ void run_demo_sequence(void) {
         engine_update();
         transmission_update();
         hydraulics_update();
+        pto_update();
+        telematics_update();
+        implement_update();
         diagnostics_update();
         canbus_update();
         sleep(1);
@@ -79,25 +128,52 @@ void run_demo_sequence(void) {
 
     print_system_status();
 
+    // Attach and configure implement
+    printf("\n>>> Attaching 24-row planter...\n");
+    implement_attach(IMPLEMENT_PLANTER);
+    sleep(1);
+
     // Engage PTO
-    printf("\n>>> Engaging PTO at 75%%...\n");
+    printf("\n>>> Engaging PTO at 540 RPM...\n");
+    pto_engage(PTO_SPEED_540);
     hydraulics_engage_pto(75);
     sleep(1);
 
-    // Raise implement
-    printf("\n>>> Raising implement...\n");
-    hydraulics_raise_implement();
-
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         engine_update();
         transmission_update();
         hydraulics_update();
+        pto_update();
+        telematics_update();
+        implement_update();
+        diagnostics_update();
+        canbus_update();
+        sleep(1);
+    }
+
+    // Lower implement and start working
+    printf("\n>>> Lowering implement to begin planting...\n");
+    implement_lower();
+    hydraulics_raise_implement();
+
+    for (int i = 0; i < 5; i++) {
+        engine_update();
+        transmission_update();
+        hydraulics_update();
+        pto_update();
+        telematics_update();
+        implement_update();
         diagnostics_update();
         canbus_update();
         sleep(1);
     }
 
     print_system_status();
+
+    // Send telematics update
+    printf("\n>>> Sending telematics data to cloud...\n");
+    telematics_send_status_update();
+    sleep(1);
 
     // Print diagnostics
     diagnostics_print_status();
@@ -119,6 +195,9 @@ int main(int argc, char* argv[]) {
     engine_init();          // Engine control
     transmission_init();    // Transmission control
     hydraulics_init();      // Hydraulics control
+    pto_init();             // PTO control
+    telematics_init();      // GPS and cloud connectivity
+    implement_init();       // Implement control
 
     printf("\n✓ All subsystems initialized\n");
 
@@ -137,6 +216,9 @@ int main(int argc, char* argv[]) {
             engine_update();
             transmission_update();
             hydraulics_update();
+            pto_update();
+            telematics_update();
+            implement_update();
             diagnostics_update();
             canbus_update();
 

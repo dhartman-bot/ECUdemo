@@ -13,7 +13,10 @@ SOURCES = $(SRC_DIR)/main.c \
           $(SRC_DIR)/hydraulics/hydraulics.c \
           $(SRC_DIR)/transmission/transmission.c \
           $(SRC_DIR)/diagnostics/diagnostics.c \
-          $(SRC_DIR)/canbus/canbus.c
+          $(SRC_DIR)/canbus/canbus.c \
+          $(SRC_DIR)/pto/pto.c \
+          $(SRC_DIR)/telematics/telematics.c \
+          $(SRC_DIR)/implement/implement.c
 
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
@@ -28,6 +31,9 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)/transmission
 	mkdir -p $(BUILD_DIR)/diagnostics
 	mkdir -p $(BUILD_DIR)/canbus
+	mkdir -p $(BUILD_DIR)/pto
+	mkdir -p $(BUILD_DIR)/telematics
+	mkdir -p $(BUILD_DIR)/implement
 
 # Link the executable
 $(TARGET): $(BUILD_DIR) $(OBJECTS)
