@@ -1,7 +1,7 @@
 {
-  "name": "tractor-ecu-monolith",
+  "name": "tractor-ecu",
   "version": "1.0.0",
-  "description": "Monolithic ECU controller for agricultural equipment",
+  "description": "ECU controller for agricultural equipment",
   "main": "src/main.c",
   "scripts": {
     "build": "gcc -o build/ecu_controller src/**/*.c src/*.c -I./src -lm",

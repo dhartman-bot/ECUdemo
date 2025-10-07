@@ -1,4 +1,4 @@
-# Makefile for Tractor ECU Monolith
+# Makefile for Tractor ECU
 
 CC = gcc
 CFLAGS = -Wall -Wextra -I./src
@@ -62,7 +62,7 @@ rebuild: clean all
 
 # Show help
 help:
-	@echo "Tractor ECU Monolith Build System"
+	@echo "Tractor ECU Build System"
 	@echo ""
 	@echo "Targets:"
 	@echo "  all      - Build the ECU controller (default)"

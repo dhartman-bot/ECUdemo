@@ -105,7 +105,7 @@ void implement_lower(void) {
     HydraulicsState* hyd = hydraulics_get_state();
     if (hyd->system_pressure < 100.0) {
         printf("[IMPLEMENT] Cannot lower - insufficient hydraulic pressure\n");
-        diagnostics_report_fault(3001, "Implement", "Implement lowering failed - low pressure");
+        diagnostics_report_fault(SPN_IMPLEMENT_POSITION, FMI_MECHANICAL_FAULT, "Implement", "Implement lowering failed - hydraulic pressure insufficient");
         return;
     }
 
@@ -165,14 +165,14 @@ void implement_update(void) {
 
         // Check for implement errors
         if (impl_state.pressure_bar < 80.0) {
-            diagnostics_report_fault(3002, "Implement", "Implement hydraulic pressure too low");
+            diagnostics_report_fault(SPN_IMPLEMENT_PRESSURE, FMI_DATA_BELOW_NORMAL, "Implement", "Implement hydraulic pressure below normal operating range");
             impl_state.status = IMPLEMENT_ERROR;
         }
 
         // Check PTO engagement for implements that need it
         if (impl_state.type == IMPLEMENT_BALER || impl_state.type == IMPLEMENT_MOWER) {
             if (pto->status != PTO_ENGAGED) {
-                diagnostics_report_fault(3003, "Implement", "PTO not engaged for implement operation");
+                diagnostics_report_fault(SPN_PTO_ENGAGEMENT, FMI_MECHANICAL_FAULT, "Implement", "PTO not engaged - required for implement operation");
             }
         }
 

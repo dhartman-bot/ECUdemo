@@ -20,7 +20,7 @@ void print_system_status(void) {
     ImplementState* implement = implement_get_state();
 
     printf("\n╔════════════════════════════════════════════════════════════╗\n");
-    printf("║              TRACTOR ECU MONOLITH STATUS                  ║\n");
+    printf("║                 TRACTOR ECU STATUS                        ║\n");
     printf("╠════════════════════════════════════════════════════════════╣\n");
     printf("║ ENGINE:                                                   ║\n");
     printf("║   RPM: %4d / %4d    Status: %-10s              ║\n",
@@ -184,7 +184,7 @@ void run_demo_sequence(void) {
 
 int main(int argc, char* argv[]) {
     printf("╔══════════════════════════════════════════════════════════════╗\n");
-    printf("║         TRACTOR ECU MONOLITHIC CONTROLLER v1.0              ║\n");
+    printf("║              TRACTOR ECU CONTROLLER v1.0                    ║\n");
     printf("║              Agricultural Equipment Control System           ║\n");
     printf("╚══════════════════════════════════════════════════════════════╝\n\n");
 

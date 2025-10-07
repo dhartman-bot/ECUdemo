@@ -44,7 +44,7 @@ void engine_update(void) {
     // Check for fault conditions
     SystemStatus health = engine_check_health();
     if (health != STATUS_OK) {
-        diagnostics_report_fault(0x01, "Engine", "High temperature or low pressure");
+        diagnostics_report_fault(SPN_ENGINE_COOLANT_TEMP, FMI_DATA_ABOVE_NORMAL, "Engine", "Engine coolant temperature extremely high");
     }
 }
 

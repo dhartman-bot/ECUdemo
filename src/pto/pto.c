@@ -28,7 +28,7 @@ void pto_engage(PTOSpeed speed) {
 
     if (engine->current_rpm < 800) {
         printf("[PTO] Cannot engage - engine RPM too low\n");
-        diagnostics_report_fault(1001, "PTO", "PTO engagement failed - low RPM");
+        diagnostics_report_fault(SPN_PTO_ENGAGEMENT, FMI_MECHANICAL_FAULT, "PTO", "PTO engagement failed - engine RPM below minimum threshold");
         return;
     }
 
@@ -79,7 +79,7 @@ void pto_update(void) {
         // Check for overload
         if (pto_state.load_percent > 90.0) {
             pto_state.overload_detected = true;
-            diagnostics_report_fault(1002, "PTO", "PTO overload detected");
+            diagnostics_report_fault(SPN_PTO_SHAFT_SPEED, FMI_DATA_ABOVE_NORMAL, "PTO", "PTO overload detected - shaft load exceeds maximum rating");
             pto_state.status = PTO_ERROR;
         }
 

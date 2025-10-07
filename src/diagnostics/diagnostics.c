@@ -35,10 +35,10 @@ void diagnostics_update(void) {
     }
 }
 
-void diagnostics_report_fault(uint16_t code, const char* module, const char* description) {
+void diagnostics_report_fault(uint32_t spn, uint8_t fmi, const char* module, const char* description) {
     // Check if fault already exists
     for (int i = 0; i < diagnostics_state.fault_count; i++) {
-        if (diagnostics_state.faults[i].fault_code == code) {
+        if (diagnostics_state.faults[i].spn == spn && diagnostics_state.faults[i].fmi == fmi) {
             diagnostics_state.faults[i].active = true;
             diagnostics_state.faults[i].timestamp = (uint32_t)time(NULL);
             return;
@@ -48,22 +48,23 @@ void diagnostics_report_fault(uint16_t code, const char* module, const char* des
     // Add new fault
     if (diagnostics_state.fault_count < MAX_FAULTS) {
         FaultRecord* fault = &diagnostics_state.faults[diagnostics_state.fault_count];
-        fault->fault_code = code;
+        fault->spn = spn;
+        fault->fmi = fmi;
         strncpy(fault->module, module, sizeof(fault->module) - 1);
         strncpy(fault->description, description, sizeof(fault->description) - 1);
         fault->timestamp = (uint32_t)time(NULL);
         fault->active = true;
         diagnostics_state.fault_count++;
 
-        printf("[DIAGNOSTICS] FAULT 0x%04X in %s: %s\n", code, module, description);
+        printf("[DIAGNOSTICS] FAULT %06u.%02u in %s: %s\n", spn, fmi, module, description);
     }
 }
 
-void diagnostics_clear_fault(uint16_t code) {
+void diagnostics_clear_fault(uint32_t spn, uint8_t fmi) {
     for (int i = 0; i < diagnostics_state.fault_count; i++) {
-        if (diagnostics_state.faults[i].fault_code == code) {
+        if (diagnostics_state.faults[i].spn == spn && diagnostics_state.faults[i].fmi == fmi) {
             diagnostics_state.faults[i].active = false;
-            printf("[DIAGNOSTICS] Cleared fault 0x%04X\n", code);
+            printf("[DIAGNOSTICS] Cleared fault %06u.%02u\n", spn, fmi);
             return;
         }
     }
@@ -86,8 +87,9 @@ void diagnostics_print_status(void) {
         printf("\nActive Faults:\n");
         for (int i = 0; i < diagnostics_state.fault_count; i++) {
             if (diagnostics_state.faults[i].active) {
-                printf("  [0x%04X] %s: %s\n",
-                    diagnostics_state.faults[i].fault_code,
+                printf("  [%06u.%02u] %s: %s\n",
+                    diagnostics_state.faults[i].spn,
+                    diagnostics_state.faults[i].fmi,
                     diagnostics_state.faults[i].module,
                     diagnostics_state.faults[i].description);
             }

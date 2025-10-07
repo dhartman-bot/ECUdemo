@@ -43,7 +43,7 @@ void hydraulics_update(void) {
     // Check for fault conditions
     SystemStatus health = hydraulics_check_health();
     if (health != STATUS_OK) {
-        diagnostics_report_fault(0x02, "Hydraulics", "Low reservoir or high temperature");
+        diagnostics_report_fault(SPN_HYDRAULIC_PRESSURE, FMI_DATA_BELOW_NORMAL, "Hydraulics", "Hydraulic system pressure below normal operating range");
     }
 }
 

@@ -75,7 +75,7 @@ void telematics_update(void) {
 
     // Check for connectivity issues
     if (telem_state.connectivity.signal_strength < 30.0) {
-        diagnostics_report_fault(2001, "Telematics", "Weak telematics signal");
+        diagnostics_report_fault(SPN_CELLULAR_SIGNAL, FMI_DATA_BELOW_NORMAL, "Telematics", "Cellular signal strength below minimum threshold");
         telem_state.connectivity.cloud_connected = false;
     } else {
         telem_state.connectivity.cloud_connected = true;

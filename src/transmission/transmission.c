@@ -43,7 +43,7 @@ void transmission_update(void) {
     // Check for fault conditions
     SystemStatus health = transmission_check_health();
     if (health != STATUS_OK) {
-        diagnostics_report_fault(0x03, "Transmission", "High temperature or low pressure");
+        diagnostics_report_fault(SPN_TRANS_OIL_TEMP, FMI_DATA_ABOVE_NORMAL, "Transmission", "Transmission oil temperature above normal operating range");
     }
 }
 
