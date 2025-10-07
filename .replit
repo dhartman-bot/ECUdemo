@@ -1,8 +1,12 @@
 run = "make demo"
 language = "c"
+modules = ["c-clang14", "bash"]
 
 [nix]
-channel = "stable-22_11"
+channel = "stable-25_05"
 
 [deployment]
 run = ["sh", "-c", "make demo"]
+
+[agent]
+expertMode = true
